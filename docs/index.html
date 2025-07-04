@@ -48,6 +48,7 @@
         <section id="introduction" class="py-20 md:py-28 bg-white">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight">Understanding Stemming in NLP</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-slate-600">Welcome to Amith's Language Lab, your central hub for exploring Natural Language Processing (NLP). This platform aims to demystify how computers comprehend, interpret, and generate human language.</p>
                 <p class="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-slate-600">An interactive guide to a core text normalization technique. Discover how reducing words to their root form powers search engines, classifiers, and more.</p>
                 <div class="mt-8 flex justify-center items-center gap-4 text-lg font-mono text-sky-700">
                     <span>running</span>
@@ -215,6 +216,7 @@
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
             <p>Interactive Stemming Guide</p>
             <p class="text-sm text-slate-400 mt-1">An interactive synthesis of the "Advanced Perspectives on Stemming" research report.</p>
+            <p class="text-sm text-slate-400 mt-2">Connect with me on LinkedIn: <a href="https://www.linkedin.com/in/amithmg6/" target="_blank" class="text-sky-400 hover:text-sky-300 underline">Amith M G</a></p>
         </div>
     </footer>
 
@@ -267,6 +269,18 @@
                     details: `A hybrid approach that uses a dictionary. It first checks if a word is in the dictionary and, if so, returns its root form. If not, it applies light stemming rules. This makes it more accurate but slower.`,
                     strengths: ['Produces valid dictionary words', 'Handles irregular forms well', 'More accurate than rule-based'],
                     weaknesses: ['Slower, computationally expensive', 'Requires a comprehensive dictionary']
+                },
+                lovins: {
+                    name: 'Lovins Stemmer',
+                    details: `The first published stemming algorithm, developed by Julie Beth Lovins in 1968. It uses a single-pass, context-sensitive approach with a large set of predefined endings and transformation rules. It aims for speed by trading space for time.`,
+                    strengths: ['Pioneering algorithm', 'Faster processing by trading space for time', 'Handles some irregular plurals'],
+                    weaknesses: ['Can be unreliable', 'Fixed suffix list limits coverage', 'Often fails to form valid words', 'Struggles with specialist terms']
+                },
+                paicehusk: {
+                    name: 'Paice-Husk Stemmer',
+                    details: `Another rule-based algorithm that employs an iterative approach to stemming. It is often used as a baseline for comparative studies due to its established methodology.`,
+                    strengths: ['Established methodology', 'Useful for comparative studies'],
+                    weaknesses: ['Can be aggressive', 'Complexity varies']
                 }
             };
 
@@ -350,6 +364,17 @@
                         else if (word === 'fairly') result = 'fair';
                         else if (word === 'feet') result = 'foot';
                         else result = word;
+                        break;
+                    case 'lovins':
+                        if (word === 'nationally') result = 'nat';
+                        else if (word === 'sitting') result = 'sit';
+                        else if (word === 'matrix') result = 'matr'; // Lovins example from report
+                        else result = word.slice(0, -3) || word; // A simplified heuristic for demo
+                        break;
+                    case 'paicehusk':
+                        if (word === 'connection') result = 'connect';
+                        else if (word === 'running') result = 'run';
+                        else result = word.slice(0, -2) || word; // A simplified heuristic for demo
                         break;
                 }
                 stemmerOutput.textContent = result;
