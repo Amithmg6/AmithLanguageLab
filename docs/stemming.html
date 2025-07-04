@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Guide to Stemming in NLP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A thematic, single-page application designed for progressive understanding. The flow is: 1. Hero section for an engaging intro. 2. A direct, interactive comparison of Stemming vs. Lemmatization, the core concept. 3. An "Algorithm Explorer" to actively learn about different methods instead of just reading a table. 4. A visual, interactive chart to explain the abstract but crucial error trade-off (Precision vs. Recall). 5. A section on future trends. This structure was chosen to transform the static report into a learning tool, prioritizing user interaction and conceptual clarity over the original document's linear format. -->
+    <!-- Visualization & Content Choices: 1. Stemming vs. Lemmatization (Goal: Compare) -> Interactive toggle buttons updating text blocks (HTML/JS) for direct side-by-side analysis. 2. Algorithm Explorer (Goal: Organize/Compare) -> Clickable cards revealing details and a "Try It" input field simulating stemmer output (HTML/JS) for hands-on learning. 3. Error Trade-off (Goal: Relationships) -> An interactive bar chart visualizing how Precision and Recall are inversely affected by stemmer aggressiveness (Chart.js/Canvas), making the abstract concept concrete. 4. Future Trends (Goal: Inform) -> Clean info cards (HTML/CSS). This approach uses interaction to clarify complex comparisons and relationships. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto; height: 350px; max-height: 450px; }
+        @media (max-width: 768px) { .chart-container { height: 300px; } }
+        .nav-link { transition: color 0.3s ease; }
+        .nav-link:hover { color: #0369a1; } /* sky-700 */
+        .active-tab { background-color: #0c4a6e; color: white; } /* sky-900 */
+        .inactive-tab { background-color: #e0f2fe; color: #0c4a6e; } /* sky-100, sky-900 */
+        .content-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .content-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0 font-bold text-xl text-sky-800">Stemming Explorer</div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#introduction" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">Introduction</a>
+                        <a href="#comparison" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">Stemming vs. Lemmatization</a>
+                        <a href="#algorithms" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">Algorithm Explorer</a>
+                        <a href="#tradeoffs" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">The Trade-off</a>
+                        <a href="#future" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-600">The Future</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="introduction" class="py-20 md:py-28 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight">Understanding Stemming in NLP</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg md:text-xl text-slate-600">An interactive guide to a core text normalization technique. Discover how reducing words to their root form powers search engines, classifiers, and more.</p>
+                <div class="mt-8 flex justify-center items-center gap-4 text-lg font-mono text-sky-700">
+                    <span>running</span>
+                    <span class="text-2xl text-slate-400">&rarr;</span>
+                    <span class="bg-sky-100 text-sky-800 px-3 py-1 rounded-md">run</span>
+                </div>
+                 <p class="mt-8 text-slate-600">This application synthesizes the key findings from the "Advanced Perspectives on Stemming" report, transforming its deep insights into an explorable, hands-on experience for better comprehension.</p>
+            </div>
+        </section>
+
+        <section id="comparison" class="py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Stemming vs. Lemmatization</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-slate-600">Two paths to the same goal: text normalization. But their methods and results differ significantly. This section explores the fundamental trade-off between raw speed and linguistic accuracy. Select an option to see how they compare.</p>
+                </div>
+
+                <div class="mt-12 max-w-4xl mx-auto">
+                    <div class="flex justify-center rounded-lg p-1 space-x-1 bg-sky-200/50">
+                        <button id="showStemmingBtn" class="w-full rounded-md py-2.5 text-sm font-semibold leading-5 focus:outline-none active-tab">Stemming</button>
+                        <button id="showLemmatizationBtn" class="w-full rounded-md py-2.5 text-sm font-semibold leading-5 focus:outline-none inactive-tab">Lemmatization</button>
+                    </div>
+
+                    <div id="stemmingContent" class="mt-6 p-6 bg-white rounded-xl shadow-md">
+                        <h3 class="text-2xl font-bold text-sky-800">Stemming: The Fast Approach</h3>
+                        <p class="mt-2 text-slate-600">A heuristic process that chops off word endings. It's fast and reduces vocabulary size, but often creates non-dictionary words.</p>
+                        <div class="mt-4 grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Pros:</h4>
+                                <ul class="mt-2 space-y-1 list-disc list-inside text-slate-600">
+                                    <li><span class="font-medium text-green-700">Fast & Efficient:</span> Computationally cheap, ideal for large datasets.</li>
+                                    <li><span class="font-medium text-green-700">Improves Recall:</span> Broadens search results by grouping word variants.</li>
+                                    <li><span class="font-medium text-green-700">Simple:</span> Easy to implement and understand.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Cons:</h4>
+                                <ul class="mt-2 space-y-1 list-disc list-inside text-slate-600">
+                                    <li><span class="font-medium text-red-700">Over-stemming:</span> Can wrongly merge distinct words.</li>
+                                    <li><span class="font-medium text-red-700">Under-stemming:</span> Can fail to group related words.</li>
+                                    <li><span class="font-medium text-red-700">Non-word Stems:</span> Output may not be a real word.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-200 font-mono text-center">
+                            "university" &rarr; "univers" | "caring" &rarr; "car"
+                        </div>
+                    </div>
+
+                    <div id="lemmatizationContent" class="hidden mt-6 p-6 bg-white rounded-xl shadow-md">
+                        <h3 class="text-2xl font-bold text-sky-800">Lemmatization: The Accurate Approach</h3>
+                        <p class="mt-2 text-slate-600">A linguistic process that returns the base or dictionary form of a word (the "lemma"). It's more accurate but computationally expensive.</p>
+                        <div class="mt-4 grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Pros:</h4>
+                                <ul class="mt-2 space-y-1 list-disc list-inside text-slate-600">
+                                    <li><span class="font-medium text-green-700">Highly Accurate:</span> Considers context and part of speech.</li>
+                                    <li><span class="font-medium text-green-700">Real-word Output:</span> Produces valid dictionary words.</li>
+                                    <li><span class="font-medium text-green-700">Reduces Ambiguity:</span> Correctly handles words with multiple meanings.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-800">Cons:</h4>
+                                <ul class="mt-2 space-y-1 list-disc list-inside text-slate-600">
+                                    <li><span class="font-medium text-red-700">Slower:</span> Requires dictionary lookups and analysis.</li>
+                                    <li><span class="font-medium text-red-700">Resource-Dependent:</span> Needs comprehensive lexical databases.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-200 font-mono text-center">
+                            "better" &rarr; "good" | "caring" &rarr; "care"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="algorithms" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Algorithm Explorer</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-slate-600">From classic rule-based methods to modern hybrids, various algorithms tackle stemming differently. This section allows you to explore their characteristics and even simulate their behavior. Select an algorithm to learn more.</p>
+                </div>
+                <div class="mt-12 flex flex-col lg:flex-row gap-8">
+                    <div class="lg:w-1/3">
+                        <div id="algo-buttons" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-3"></div>
+                    </div>
+                    <div class="lg:w-2/3">
+                        <div id="algo-details" class="p-6 bg-slate-50 rounded-xl border border-slate-200 min-h-[300px]">
+                            <p class="text-slate-500 text-center pt-24">Select an algorithm to see its details here.</p>
+                        </div>
+                        <div class="mt-6 p-6 bg-sky-50 rounded-xl border border-sky-200">
+                            <h4 class="font-semibold text-lg text-sky-900">Try It Out!</h4>
+                            <p class="text-sm text-sky-800 mt-1">Enter a word to see a simulated stemmed result. (Based on examples from the report).</p>
+                            <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="stemmer-input" class="w-full flex-grow px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500" placeholder="e.g., traditional, running, fairly">
+                                <button id="stemmer-submit" class="bg-sky-600 text-white font-semibold px-4 py-2 rounded-md hover:bg-sky-700 transition-colors">Stem</button>
+                            </div>
+                            <p class="mt-3 text-center text-lg">Result: <span id="stemmer-output" class="font-mono bg-white px-2 py-1 rounded-md text-slate-700">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tradeoffs" class="py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">The Error Trade-off</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-slate-600">No stemmer is perfect. They all balance two types of errors: over-stemming (low precision) and under-stemming (low recall). This section visualizes how a stemmer's "aggressiveness" impacts this balance. Explore how changing the approach affects outcomes.</p>
+                </div>
+                <div class="mt-12 max-w-4xl mx-auto flex justify-center rounded-lg p-1 space-x-1 bg-slate-200">
+                    <button id="showLightStemmer" class="w-full rounded-md py-2.5 text-sm font-semibold leading-5 focus:outline-none active-tab">Light Stemmer</button>
+                    <button id="showAggressiveStemmer" class="w-full rounded-md py-2.5 text-sm font-semibold leading-5 focus:outline-none inactive-tab">Aggressive Stemmer</button>
+                </div>
+                <div class="mt-8 grid md:grid-cols-2 gap-8 items-center">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 id="tradeoff-title" class="text-xl font-bold text-sky-800">Light Stemmer Profile</h3>
+                        <p id="tradeoff-desc" class="mt-2 text-slate-600">A conservative approach. It's less likely to mistakenly group unrelated words, leading to high precision.</p>
+                        <div class="mt-4 space-y-3">
+                            <div id="tradeoff-error1-container">
+                                <h4 class="font-semibold text-red-700">Primary Error: Under-stemming</h4>
+                                <p class="text-sm text-slate-500">Fails to group related words.</p>
+                                <p class="font-mono bg-red-50 p-2 rounded-md mt-1">"recognize" &ne; "recognition"</p>
+                            </div>
+                             <div id="tradeoff-error2-container">
+                                <h4 class="font-semibold text-green-700">Avoids: Over-stemming</h4>
+                                <p class="text-sm text-slate-500">Correctly keeps distinct words separate.</p>
+                                <p class="font-mono bg-green-50 p-2 rounded-md mt-1">"university" &ne; "universe"</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="tradeoffChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="future" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">The Future: Advanced Methods</h2>
+                    <p class="mt-3 max-w-2xl mx-auto text-lg text-slate-600">The field is evolving beyond simple rules. Neural networks and Large Language Models (LLMs) are introducing more context-aware and sophisticated ways to perform text normalization.</p>
+                </div>
+                <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="content-card p-6 bg-slate-50 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-lg text-sky-800">Neural Morphological Analysis</h3>
+                        <p class="mt-2 text-slate-600">Using models like RNNs and Transformers to learn word structures from data. This is especially powerful for complex and low-resource languages, and for handling words not seen during training (OOV words).</p>
+                    </div>
+                    <div class="content-card p-6 bg-slate-50 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-lg text-sky-800">LLMs for Stemming</h3>
+                        <p class="mt-2 text-slate-600">While promising, general LLMs haven't consistently beaten traditional stemmers for simple retrieval tasks. Specialized methods like <strong class="font-semibold">Entity-based Contextual Stemming</strong> (ECS), which avoids stemming names and places, show more potential.</p>
+                    </div>
+                    <div class="content-card p-6 bg-slate-50 rounded-xl border border-slate-200">
+                        <h3 class="font-bold text-lg text-sky-800">Contextual Lemmatization</h3>
+                        <p class="mt-2 text-slate-600">The true power of modern models. Deep learning excels at this, using context and word embeddings (like Word2Vec) to deliver highly accurate, linguistically correct base words, crucial for tasks like machine translation.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-slate-800 text-slate-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <p>Interactive Stemming Guide</p>
+            <p class="text-sm text-slate-400 mt-1">An interactive synthesis of the "Advanced Perspectives on Stemming" research report.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const stemmingContent = document.getElementById('stemmingContent');
+            const lemmatizationContent = document.getElementById('lemmatizationContent');
+            const showStemmingBtn = document.getElementById('showStemmingBtn');
+            const showLemmatizationBtn = document.getElementById('showLemmatizationBtn');
+
+            showStemmingBtn.addEventListener('click', () => {
+                stemmingContent.classList.remove('hidden');
+                lemmatizationContent.classList.add('hidden');
+                showStemmingBtn.classList.add('active-tab');
+                showStemmingBtn.classList.remove('inactive-tab');
+                showLemmatizationBtn.classList.add('inactive-tab');
+                showLemmatizationBtn.classList.remove('active-tab');
+            });
+
+            showLemmatizationBtn.addEventListener('click', () => {
+                lemmatizationContent.classList.remove('hidden');
+                stemmingContent.classList.add('hidden');
+                showLemmatizationBtn.classList.add('active-tab');
+                showLemmatizationBtn.classList.remove('inactive-tab');
+                showStemmingBtn.classList.add('inactive-tab');
+                showStemmingBtn.classList.remove('active-tab');
+            });
+            
+            const algoData = {
+                porter: {
+                    name: 'Porter Stemmer',
+                    details: `One of the most common stemmers for English. It uses a five-phase, rule-based algorithm to iteratively remove suffixes. It's known for being simple and efficient, but can be aggressive and produce non-dictionary stems.`,
+                    strengths: ['Simple and fast', 'Widely used baseline', 'Effective for English'],
+                    weaknesses: ['Produces non-dictionary words', 'Can over-stem or under-stem', 'English only']
+                },
+                snowball: {
+                    name: 'Snowball (Porter2)',
+                    details: 'An improvement on the original Porter stemmer, also developed by Martin Porter. It is more aggressive but generally more accurate. A key advantage is its support for multiple languages.',
+                    strengths: ['Improved accuracy over Porter', 'Multi-language support', 'Lower error rate'],
+                    weaknesses: ['More complex than Porter', 'Still heuristic-based']
+                },
+                lancaster: {
+                    name: 'Lancaster Stemmer',
+                    details: `A highly aggressive, rule-based stemmer from Lancaster University. It's very fast but often over-stems, leading to very short, sometimes unintelligible stems. Its aggressiveness can reduce precision.`,
+                    strengths: ['Very fast and simple', 'Aggressively reduces words'],
+                    weaknesses: ['Prone to over-stemming', 'Can produce confusing stems', 'Loses word meaning']
+                },
+                krovetz: {
+                    name: 'Krovetz Stemmer',
+                    details: `A hybrid approach that uses a dictionary. It first checks if a word is in the dictionary and, if so, returns its root form. If not, it applies light stemming rules. This makes it more accurate but slower.`,
+                    strengths: ['Produces valid dictionary words', 'Handles irregular forms well', 'More accurate than rule-based'],
+                    weaknesses: ['Slower, computationally expensive', 'Requires a comprehensive dictionary']
+                }
+            };
+
+            const algoButtonsContainer = document.getElementById('algo-buttons');
+            const algoDetailsContainer = document.getElementById('algo-details');
+            let activeAlgo = 'porter';
+
+            function renderAlgoButtons() {
+                algoButtonsContainer.innerHTML = '';
+                Object.keys(algoData).forEach(key => {
+                    const algo = algoData[key];
+                    const button = document.createElement('button');
+                    button.dataset.algo = key;
+                    button.textContent = algo.name;
+                    button.className = `w-full text-left p-3 rounded-lg transition-colors font-semibold ${key === activeAlgo ? 'bg-sky-700 text-white' : 'bg-white hover:bg-slate-100 shadow-sm border'}`;
+                    button.addEventListener('click', () => {
+                        activeAlgo = key;
+                        renderAlgoButtons();
+                        renderAlgoDetails();
+                    });
+                    algoButtonsContainer.appendChild(button);
+                });
+            }
+
+            function renderAlgoDetails() {
+                const algo = algoData[activeAlgo];
+                algoDetailsContainer.innerHTML = `
+                    <h3 class="text-2xl font-bold text-sky-900">${algo.name}</h3>
+                    <p class="mt-2 text-slate-700">${algo.details}</p>
+                    <div class="mt-4 grid md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-green-800">Strengths</h4>
+                            <ul class="mt-1 list-disc list-inside text-slate-600 text-sm space-y-1">
+                                ${algo.strengths.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-red-800">Weaknesses</h4>
+                             <ul class="mt-1 list-disc list-inside text-slate-600 text-sm space-y-1">
+                                ${algo.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const stemmerInput = document.getElementById('stemmer-input');
+            const stemmerSubmit = document.getElementById('stemmer-submit');
+            const stemmerOutput = document.getElementById('stemmer-output');
+
+            stemmerSubmit.addEventListener('click', () => {
+                const word = stemmerInput.value.trim().toLowerCase();
+                let result = '-';
+                if (!word) {
+                    stemmerOutput.textContent = result;
+                    return;
+                }
+
+                switch (activeAlgo) {
+                    case 'porter':
+                        if (word === 'traditional') result = 'tradit';
+                        else if (word === 'running') result = 'run';
+                        else if (word === 'fairly') result = 'fairli';
+                        else result = word.slice(0, -2) || word;
+                        break;
+                    case 'snowball':
+                         if (word === 'traditional') result = 'tradit';
+                        else if (word === 'running') result = 'run';
+                        else if (word === 'fairly') result = 'fair';
+                        else result = word.slice(0, -3) || word;
+                        break;
+                    case 'lancaster':
+                        if (word === 'traditional') result = 'tradit';
+                        else if (word === 'running') result = 'run';
+                        else if (word === 'fairly') result = 'fair';
+                        else result = word.slice(0, -4) || word;
+                        break;
+                    case 'krovetz':
+                        if (word === 'traditional') result = 'traditional';
+                        else if (word === 'running') result = 'run';
+                        else if (word === 'fairly') result = 'fair';
+                        else if (word === 'feet') result = 'foot';
+                        else result = word;
+                        break;
+                }
+                stemmerOutput.textContent = result;
+            });
+            
+            renderAlgoButtons();
+            renderAlgoDetails();
+
+
+            const tradeoffCtx = document.getElementById('tradeoffChart').getContext('2d');
+            let tradeoffChart;
+            const lightStemmerData = {
+                labels: ['Precision (Avoids Over-stemming)', 'Recall (Finds All Related Words)'],
+                datasets: [{
+                    label: 'Performance',
+                    data: [0.9, 0.6],
+                    backgroundColor: ['rgba(22, 163, 74, 0.6)', 'rgba(220, 38, 38, 0.6)'],
+                    borderColor: ['rgb(21, 128, 61)', 'rgb(185, 28, 28)'],
+                    borderWidth: 1
+                }]
+            };
+            const aggressiveStemmerData = {
+                labels: ['Precision (Avoids Over-stemming)', 'Recall (Finds All Related Words)'],
+                datasets: [{
+                    label: 'Performance',
+                    data: [0.65, 0.95],
+                    backgroundColor: ['rgba(220, 38, 38, 0.6)', 'rgba(22, 163, 74, 0.6)'],
+                    borderColor: ['rgb(185, 28, 28)', 'rgb(21, 128, 61)'],
+                    borderWidth: 1
+                }]
+            };
+
+            const chartOptions = {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, max: 1.0, grid: { color: '#e2e8f0' } },
+                    y: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) { label += ': '; }
+                                if (context.parsed.x !== null) {
+                                    label += new Intl.NumberFormat('en-US', { style: 'percent' }).format(context.parsed.x);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            };
+            
+            function createOrUpdateChart(data) {
+                if (tradeoffChart) {
+                    tradeoffChart.data = data;
+                    tradeoffChart.update();
+                } else {
+                    tradeoffChart = new Chart(tradeoffCtx, {
+                        type: 'bar',
+                        data: data,
+                        options: chartOptions
+                    });
+                }
+            }
+
+            const showLightStemmerBtn = document.getElementById('showLightStemmer');
+            const showAggressiveStemmerBtn = document.getElementById('showAggressiveStemmer');
+            const tradeoffTitle = document.getElementById('tradeoff-title');
+            const tradeoffDesc = document.getElementById('tradeoff-desc');
+            const tradeoffError1 = document.getElementById('tradeoff-error1-container');
+            const tradeoffError2 = document.getElementById('tradeoff-error2-container');
+
+            showLightStemmerBtn.addEventListener('click', () => {
+                createOrUpdateChart(lightStemmerData);
+                tradeoffTitle.textContent = 'Light Stemmer Profile';
+                tradeoffDesc.textContent = 'A conservative approach. It\'s less likely to mistakenly group unrelated words, leading to high precision.';
+                tradeoffError1.innerHTML = `
+                    <h4 class="font-semibold text-red-700">Primary Error: Under-stemming</h4>
+                    <p class="text-sm text-slate-500">Fails to group related words.</p>
+                    <p class="font-mono bg-red-50 p-2 rounded-md mt-1">"recognize" &ne; "recognition"</p>`;
+                tradeoffError2.innerHTML = `
+                    <h4 class="font-semibold text-green-700">Avoids: Over-stemming</h4>
+                    <p class="text-sm text-slate-500">Correctly keeps distinct words separate.</p>
+                    <p class="font-mono bg-green-50 p-2 rounded-md mt-1">"university" &ne; "universe"</p>`;
+                showLightStemmerBtn.classList.add('active-tab');
+                showLightStemmerBtn.classList.remove('inactive-tab');
+                showAggressiveStemmerBtn.classList.add('inactive-tab');
+                showAggressiveStemmerBtn.classList.remove('active-tab');
+            });
+
+            showAggressiveStemmerBtn.addEventListener('click', () => {
+                createOrUpdateChart(aggressiveStemmerData);
+                tradeoffTitle.textContent = 'Aggressive Stemmer Profile';
+                tradeoffDesc.textContent = 'A bold approach. It groups many word variants together, leading to high recall but at the cost of precision.';
+                tradeoffError1.innerHTML = `
+                    <h4 class="font-semibold text-red-700">Primary Error: Over-stemming</h4>
+                    <p class="text-sm text-slate-500">Mistakenly groups unrelated words.</p>
+                    <p class="font-mono bg-red-50 p-2 rounded-md mt-1">"university" &rarr; "univers" &larr; "universe"</p>`;
+                tradeoffError2.innerHTML = `
+                    <h4 class="font-semibold text-green-700">Avoids: Under-stemming</h4>
+                    <p class="text-sm text-slate-500">Successfully groups related words.</p>
+                    <p class="font-mono bg-green-50 p-2 rounded-md mt-1">"recognize" &rarr; "recogn" &larr; "recognition"</p>`;
+
+                showAggressiveStemmerBtn.classList.add('active-tab');
+                showAggressiveStemmerBtn.classList.remove('inactive-tab');
+                showLightStemmerBtn.classList.add('inactive-tab');
+                showLightStemmerBtn.classList.remove('active-tab');
+            });
+            
+            createOrUpdateChart(lightStemmerData);
+        });
+    </script>
+</body>
+</html>
